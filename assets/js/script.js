@@ -4,6 +4,38 @@ const pubnub = new PubNub({
   uuid: "Rellwoos"
 });
 
+pubnub.addListener({
+  message: (message) => {
+    displayMessage('[MESSAGE: received]', message);
+
+    const channelName = message.channel;
+    const channelGroup = message.subscription;
+    const publishTimetoken = message.timetoken;
+    const msg = message.message;
+    const publisher = message.publisher;
+    const unixTimestamp = message.timetoken / 10000000;
+    const gmtDate = new Date(unixTimestamp * 1000);
+    const localeDateTime = gmtDate.toLocaleString();
+  },
+
+  status: (status) => {
+    const affectedChannels = status.affectedChannels;
+    const category = status.category;
+    const operation = status.operation;
+  },
+
+  presence: (presence) => {
+    const action = presence.action;
+    const channelName = presence.channel;
+    const uuid = presence.uuid;
+    displayUsers(presence.uuid)
+  },
+});//end addListener
+
+
+
+
+
 let channel;
 let locations = {
   "North-Woods-Entrance":
@@ -19,7 +51,7 @@ let locations = {
 };
 let emptyDirections = {n:"", s:"", w:"", e:""};
 let locationIndex = "North-Woods-Entrance";
-
+const shortDirections = {n:"north", s:"south", e:"east", w:"west"};
 
 
 
@@ -30,30 +62,33 @@ displayMessage = function(messageType, aMessage) {
 
 
 
-
+function displayUsers(UUIDs){
+  console.log("displaying Users: ");
+  console.log(UUIDs);
+}
 
 
 
 
 
 const Chatroom = function(direction) {
+
   //varible to tell whether character moved this call
-  let moved = false;
+  
 
   // give this chatroom the correct id
   if (direction === "start") {
     locationIndex = "North-Woods-Entrance";
   } else if (!(locations[locationIndex][direction] === "none")) {
     //unsubscribe from previous room
-    pubnub.unsubscribe({channels: [channel]})
     //set locationIndex to next locations
     locationIndex = locations[locationIndex][direction];
-    moved = true;
+    $(".chat-output").append(`<p class="displayed-message">${pubnub.getUUID()} moved ${shortDirections[direction]}</p>`);
 
   }
-  const id = locationIndex;
 
-  // use the id as the PubNub channel
+  // set channel off of locationIndex channel
+  const id = locationIndex;
   channel = 'oo-chat-' + id;
   $(".panel-heading").text(`${id}`);
 
@@ -61,80 +96,46 @@ const Chatroom = function(direction) {
   const init = function() {
 
     //message listener
-    pubnub.addListener({
-      message: (message) => {
-        displayMessage('[MESSAGE: received]', message);
 
-        const channelName = message.channel;
-        const channelGroup = message.subscription;
-        const publishTimetoken = message.timetoken;
-        const msg = message.message;
-        const publisher = message.publisher;
-        const unixTimestamp = message.timetoken / 10000000;
-        const gmtDate = new Date(unixTimestamp * 1000);
-        const localeDateTime = gmtDate.toLocaleString();
-      },
 
-      status: (status) => {
-        const affectedChannels = status.affectedChannels;
-        const category = status.category;
-        const operation = status.operation;
-      },
-
-      presence: (presence) => {
-        const action = presence.action;
-        const channelName = presence.channel;
-        const uuid = presence.uuid;
-      },
-    });
-
+    pubnub.unsubscribeAll();
+    console.log("subscribing");
     pubnub.subscribe({channels: [channel]});
 
-  };
+  };//end init
 
   init();
 
-  if (moved) {
-    pubnub.publish(
-      {
-        channel: channel,
-        message: {"text":`You move ${direction}, to ${locationIndex}`},
-      },
-      function(status, response) {
-        // console.log(status);
-        console.log(response);
-      }
-    );
-  }
-
-  //publish message on submit
-  $("#submit-button").click(function(event) {
-    event.preventDefault();
-
-    //log, then clear input value
-    let value = $(".chat-input").val();
-    console.log(value);
-    $(".chat-input").val("");
-
-    pubnub.publish(
-      {
-        channel: channel,
-        message: {"text":value},
-      },
-      function(status, response) {
-        // console.log(status);
-        console.log(response);
-      }
-    );
-  })
-
-
 };
 
-  $('.spawn-chatroom').click(function(){
-    console.log(this.value);
-    Chatroom(this.value);  
-  });
+$('.spawn-chatroom').click(function(){
+  console.log(this.value);
+  Chatroom(this.value);  
+});
 
-  Chatroom("start");
+Chatroom("start");
 
+
+//publish message on submit
+$("#submit-button").click(function(event) {
+  event.preventDefault();
+
+  //log, then clear input value
+  let value = $(".chat-input").val();
+  console.log(value);
+  $(".chat-input").val("");
+
+  pubnub.publish({
+    channel: channel,
+    message: {"text":value},
+    },
+
+    function(status, response) {
+      console.log("Publishing from submit button event");
+      if (status.error) {
+        console.log(status);
+        console.log(response);
+      }
+    }
+  );
+})

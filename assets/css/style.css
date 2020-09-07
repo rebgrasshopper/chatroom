@@ -33,3 +33,10 @@ body {
 .chat-input {
 width: 90%;
 }
+
+.message-output-box {
+    overflow-y: scroll;
+    overflow-wrap: break-word;
+    
+    height: 100%;
+}

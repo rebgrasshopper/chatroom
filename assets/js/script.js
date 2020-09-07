@@ -34,14 +34,16 @@ pubnub.addListener({
 
 
 
-
-
 let channel;
 let locations = {
-  "North-Woods-Entrance":
+  "North-Woods-Entrance": {exits:
   {n:"North-Woods-Path-A", s:"Plains-X", w:"none", e:"none"},
-  "North-Woods-Path-A":
+  descriptions:{light:"The path into the woods is well lit by sun from the plains to the south. Large redwoods and a variety of other trees competing for the leftover scraps of sunlight seem to stretch infinitely to either side, but the path to the north is clear. It's almost as if a diving line exists that keeps the plains on one side and the forest on the other.", dark:"You can just make out the way forward between the dense growth of trees with the faint glow of moonlight filtering dimly into the forest entrance."},
+  },
+  "North-Woods-Path-A":{exits:
   {n:"North-Woods-Path-B", s:"North-Woods-Entrance", w:"none", e:"none"},
+  descriptions:{light:"The interior of the forest is shady, but well lit with dappled sunshine falling through the canopy. Birds call out to each other, unseen in the high tree-tops. You see the path stretching north before you.", dark:"It's almost pitch-black inside the wood, but you can just make out the path in front of you. The forest rustles around you in the night breeze, and the soft call of an owl floats in from far away."},
+  },
   "North-Woods-Path-B":
   {n:"Empty-Grotto", s:"North-Woods-Path-A", w:"none", e:"none"},
   "Empty-Grotto":
@@ -73,17 +75,19 @@ function displayUsers(UUIDs){
 
 const Chatroom = function(direction) {
 
-  //varible to tell whether character moved this call
-  
-
   // give this chatroom the correct id
   if (direction === "start") {
     locationIndex = "North-Woods-Entrance";
-  } else if (!(locations[locationIndex][direction] === "none")) {
+    $(".chat-output").append(`<p class="displayed-message">In: ${locationIndex.replace(/ /g, " ")}</p>`);
+    $(".chat-output").append(`<p class="displayed-description">${locations[locationIndex].descriptions["light"]}</p>`);
+  } else if (!(locations[locationIndex].exits[direction] === "none")) {
     //unsubscribe from previous room
     //set locationIndex to next locations
-    locationIndex = locations[locationIndex][direction];
+    locationIndex = locations[locationIndex].exits[direction];
     $(".chat-output").append(`<p class="displayed-message">${pubnub.getUUID()} moved ${shortDirections[direction]}</p>`);
+    $(".chat-output").append(`<p class="displayed-message">${locationIndex.replace(/ /g, " ")}</p>`);
+    $(".chat-output").append(`<p class="displayed-description">${locations[locationIndex].descriptions["light"]}</p>`);
+
 
   }
 
@@ -94,9 +98,6 @@ const Chatroom = function(direction) {
 
   // this function is fired when Chatroom() is called
   const init = function() {
-
-    //message listener
-
 
     pubnub.unsubscribeAll();
     console.log("subscribing");

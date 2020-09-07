@@ -3,6 +3,9 @@ body {
     margin: 0 auto;
 }
 
+
+/* Chat box */ 
+
 .panel-default {
     background-color: black;
     color: white;
@@ -37,6 +40,13 @@ width: 90%;
 .message-output-box {
     overflow-y: scroll;
     overflow-wrap: break-word;
-    
     height: 100%;
+}
+
+
+
+/* message display */
+.displayed-description {
+    margin-left: 20px;
+    margin-top: -8px;
 }

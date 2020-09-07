@@ -1,21 +1,41 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <script type='text/javascript' src='https://cdn.scaledrone.com/scaledrone.min.js'></script>
-  <!--<script type='text/javascript' src='http://0.0.0.0:8080/scaledrone.js'></script>-->
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width">
-  <link href='./assets/css/style.css' rel='stylesheet' type='text/css'>
+<html lang='en-us'>
 
+<head>
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link href='./assets/css/style.css' rel='stylesheet' type='text/css'>
+<title>RPG Chat</title>
 </head>
 <body>
-  <div class="members-count">-</div>
-  <div class="members-list">-</div>
-  <div class="messages"></div>
-  <form class="message-form" onsubmit="return false;">
-    <input class="message-form__input" placeholder="Type a message.." type="text"/>
-    <input class="message-form__button" value="Send" type="submit"/>
-  </form>
-  <script src='./assets/js/script.js'></script>
+    <div class="button-box">
+    <input type="submit" value="n" id="n" class="spawn-chatroom btn btn-default" />
+
+    <input type="submit" value="s" id="s" class="spawn-chatroom btn btn-default" />
+
+    <input type="submit" value="e" id="e" class="spawn-chatroom btn btn-default" />
+
+    <input type="submit" value="w" id="w" class="spawn-chatroom btn btn-default" />
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading"></div>
+        <ul class="list-group chat-output"></ul>
+        <div class="panel-body">
+          <form>
+            <div class="input-group">
+              <input type="text" class="form-control chat-input" />
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-default">Submit</button>
+              </span>
+            </div>
+          </form>
+        </div>
+      </div>
+<!-- PubNub  -->
+<script src="https://cdn.pubnub.com/pubnub.min.js"></script>
+<!-- jquery  -->
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
+<!-- JS  -->
+<script src='./assets/js/script.js'></script>
 </body>
 </html>

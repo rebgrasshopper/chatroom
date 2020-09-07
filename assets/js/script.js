@@ -1,149 +1,121 @@
-//create error to call for too many users
-class Error {
-    constructor(message) {
-        this.message = message;
-        this.name = "Error";
+var pubnub = PUBNUB.init({
+    publish_key: 'pub-c-3b1a90da-b8c6-4753-a965-7fd056636e55',
+    subscribe_key: 'sub-c-9fd7a810-f093-11ea-92d8-06a89e77181a'
+  });
+
+  let locations = {
+    "North-Woods-Entrance":
+    {n:"North-Woods-Path-A", s:"Plains-X", w:"none", e:"none"},
+    "North-Woods-Path-A":
+    {n:"North-Woods-Path-B", s:"North-Woods-Entrance", w:"none", e:"none"},
+    "North-Woods-Path-B":
+    {n:"Empty-Grotto", s:"North-Woods-Path-A", w:"none", e:"none"},
+    "Empty-Grotto":
+    {n:"none", s:"North-Woods-Path-B", w:"none", e:"none"},
+    "Plains-X":
+    {n:"North-Woods-Entrance", s:"none", w:"none", e:"none"}
+  };
+  let emptyDirections = {n:"", s:"", w:"", e:""};
+  let locationIndex = "North-Woods-Entrance";
+  
+  var Chatroom = function(direction) {
+    //varible to tell whether character moved this call
+    let moved = false;
+  
+    // give this chatroom the correct id
+    if (direction === "start") {
+      locationIndex = "North-Woods-Entrance";
+    } else if (!(locations[locationIndex][direction] === "none")) {
+      //set locationIndex to next locations
+      locationIndex = locations[locationIndex][direction];
+      moved = true;
+
     }
-}
+    var id = locationIndex;
+  
+    // use the id as the PubNub channel
+    var channel = 'oo-chat-' + id;
+    $(".panel-heading").text(`${id}`);
 
-//room variables
-let onlineUsers = [];
-let members = [];
-const CHANNEL_ID = 'w8iSBcHGqQJ9e4JC';
-const drone = new ScaleDrone(CHANNEL_ID, {
-    data: {
-        name: getRandomName(),
-        color: getRandomColor(),
-    },
-});
-
-
-
-//create a unique name for every new users up to 20
-function getRandomName() {
-
-    if (onlineUsers.length < 21){
-
-        const adjs = ["excitable", "conscious", "tedious", "terrific", "omniscient", "fluffy", "lucky", "puzzled", "sable", "nice", "famous", "dusty", "cheerful", "adamant", "bashful", "muddled", "absurd", "defiant", "tidy", "fantastic"];
-
-        const nouns = ["agouti", "bison", "condor", "dove", "emu", "frog", "guanaco", "hyena", "ibex", "koala", "lion", "meerkat", "otter", "peccary", "quail", "ringtail", "sloth", "tortoise", "urial", "vulture", "woylie", "yak", "zorilla"];
-
-        let name = adjs[Math.floor(Math.random() * adjs.length)] + "-" + nouns[Math.floor(Math.random() * nouns.length)];
-        if (onlineUsers.indexOf(name) === -1) {
-            onlineUsers.push(name);
-            return name
-        } else {
-            getRandomName();
+    // define our jQuery template object
+    var $tpl = $(".panel");
+  
+    // store jQuery selectors
+    var $form = $tpl.find('form');
+    var $input = $form.find('.chat-input');
+    var $output = $tpl.find('.chat-output');
+  
+    // this function draws the chatroom on the page and binds the DOM elements
+    var render = function() {
+  
+      $form.submit(function() {
+  
+        pubnub.publish({
+          channel: channel,
+          message: $input.val()
+        });
+  
+        $input.val('');
+        
+        return false;
+  
+      });
+    };
+  
+    // this function is fired when Chatroom() is called
+    var init = function() {
+      pubnub.addListener({
+        message: (message) => {
+          // handle message
+          const channelName = message.channel;
+          const channelGroup = message.subscription;
+          const publishTimetoken = message.timetoken;
+          const msg = message.message;
+          const publisher = message.publisher;
+      
+          //show time
+          const unixTimestamp = message.timetoken / 10000000;
+          const gmtDate = new Date(unixTimestamp * 1000);
+          const localeDateTime = gmtDate.toLocaleString();
         }
-    } else {
-        throw new Error("Sorry, the room is already full!")
-    }
-}
+      });
+      
+      pubnub.subscribe({
+        channel: channel,    
+        connect: render,
+        message: function(text) {
+  
+            var $line = $('<div class="list-group-item"></div>');
+            var $message = $('<span class="text" />').text(text).html();
 
-
-//create a random color for each new user
-function getRandomColor(){
-    return '#' + Math.floor(Math.random() * 0xFFFFFF).toString(16);
-}
-
-//connect to room
-
-drone.on('open', error => {
-    if (error) {
-        return console.error(error);
-    }
-    console.log('Successfully connected to Scaledrone');
-
-    const room = drone.subscribe('observable-room');
-    room.on('open', error => {
-        if (error){
-            return console.error(error);
+            $line.append($message);
+            $output.append($line);
+            $output.scrollTop($output[0].scrollHeight);
+  
         }
-        console.log(('Successfully joined room'));
-    })
+      });
+  
+    };
+  
+    init();
 
-    //List of currently online members, emitted once
-    room.on('members', m=> {
-        members = m;
-        updateMembersDOM();
-    });
-
-    //User joined the room
-    room.on('member_join', member => {
-        members.push(member);
-        updateMembersDOM();
-    });
-
-    //User Left the room
-    room.on('member_leave', ({id}) => {
-        const index = members.findIndex(member => member.id === id);
-        members.splice(index, 1);
-        updateMembersDOM();
-    });
-
-    room.on('data', (text, member) => {
-        if(member){
-            addMessageToListDOM(text, member);
-        } else {
-            //Message is from server
-        }
-    });
-
-})
-
-
-
-
-
-const DOM = {
-    membersCount: document.querySelector('.members-count'),
-    membersList: document.querySelector('.members-list'),
-    messages: document.querySelector('.messages'),
-    input: document.querySelector('.message-form__input'),
-    form: document.querySelector('.message-form'),
+  if (moved) {
+    pubnub.publish(
+      {
+        channel: channel,
+        message: `You move ${direction}, to ${locationIndex}`,
+      },
+      function(status, response) {
+        console.log(status);
+        console.log(response);
+      }
+    );
+  }
 };
 
-function createMemberElement(member){
-    const { name, color } = member.clientData;
-    const el = document.createElement('div');
-    el.appendChild(document.createTextNode(name));
-    el.className='member';
-    el.style.color = color;
-    return el;
-}
+  $('.spawn-chatroom').click(function(){
+    console.log(this.value);
+    Chatroom(this.value);  
+  });
 
-function updateMembersDOM() {
-    DOM.membersCount.innerText = `${members.length} users in room:`;
-    DOM.membersList.innerHTML = '';
-    members.forEach(member =>
-        DOM.membersList.appendChild(createMemberElement(member))
-        );
-}
-
-function createMessageElement(text, member) {
-    const el = document.createElement('div');
-    el.appendChild(createMemberElement(member));
-    el.appendChild(document.createTextNode(text));
-    el.className = 'message';
-    return el;
-}
-
-function addMessageToListDOM(text, member){
-    const el = DOM.messages;
-    el.appendChild(createMessageElement(text, member));
-    el.scrollTop = el.scrollHeight;
-}
-
-DOM.form.addEventListener('submit', sendMessage);
-
-function sendMessage() {
-    const value = DOM.input.value;
-    if (value === '') {
-        return;
-    }
-    DOM.input.value = '';
-    drone.publish({
-        room: 'observable-room',
-        message: value,
-    });
-}
+  Chatroom("start");

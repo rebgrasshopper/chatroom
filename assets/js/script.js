@@ -1,3 +1,8 @@
+//GOALS:
+  //allow user to stay scrolled up if they scroll, but pin to the bottom again if they scroll down.
+  //set up user accounts
+  //set up command line interactions
+
 const pubnub = new PubNub({
   publishKey: 'pub-c-3b1a90da-b8c6-4753-a965-7fd056636e55',
   subscribeKey: 'sub-c-9fd7a810-f093-11ea-92d8-06a89e77181a',
@@ -28,10 +33,8 @@ pubnub.addListener({
     const action = presence.action;
     const channelName = presence.channel;
     const uuid = presence.uuid;
-    displayUsers(presence.uuid)
   },
 });//end addListener
-
 
 
 let channel;
@@ -44,12 +47,18 @@ let locations = {
   {n:"North-Woods-Path-B", s:"North-Woods-Entrance", w:"none", e:"none"},
   descriptions:{light:"The interior of the forest is shady, but well lit with dappled sunshine falling through the canopy. Birds call out to each other, unseen in the high tree-tops. You see the path stretching north before you.", dark:"It's almost pitch-black inside the wood, but you can just make out the path in front of you. The forest rustles around you in the night breeze, and the soft call of an owl floats in from far away."},
   },
-  "North-Woods-Path-B":
+  "North-Woods-Path-B":{exits:
   {n:"Empty-Grotto", s:"North-Woods-Path-A", w:"none", e:"none"},
-  "Empty-Grotto":
+  descriptions:{light:"The interior of the forest is shady, but well lit with dappled sunshine falling through the canopy. Birds call out to each other, unseen in the high tree-tops. North of you, you can see a brighter patch of light.", dark:"It's almost pitch-black inside the wood, but you can just make out the path in front of you. There seems to be a patch of moonlight to the north. Do the night noises of the forest seem quieter here?"},
+  },
+  "Empty-Grotto":{exits:
   {n:"none", s:"North-Woods-Path-B", w:"none", e:"none"},
-  "Plains-X":
-  {n:"North-Woods-Entrance", s:"none", w:"none", e:"none"}
+  descriptions:{light:"Sunlight streams down in this small clearing. The trees tower around the edges, but this roughly circular patch of land is oddly clear of even the smallest sapling. Instead, vines, grasses, and flowers cover the ground here. You hear the raucus chatter of crows, and the swish of the leaves as the breeze dips into the clearing from above.", dark:"The small clearing is dim but clear to your night-adjusted eyes, with moonlight streaming down from the break in the canopy. The rustling leaves and the sound of a few crickets are the only things you hear here."},
+  },
+  "Plains-X":{exits:
+  {n:"North-Woods-Entrance", s:"none", w:"none", e:"none"},
+  descriptions:{light:"", dark:""},
+  },
 };
 let emptyDirections = {n:"", s:"", w:"", e:""};
 let locationIndex = "North-Woods-Entrance";
@@ -59,35 +68,30 @@ const shortDirections = {n:"north", s:"south", e:"east", w:"west"};
 
 displayMessage = function(messageType, aMessage) {
   console.log(aMessage);
-  $(".chat-output").append(`<p class="displayed-message">${aMessage.publisher}: ${aMessage.message.text}</p>`);
-}
-
-
-
-function displayUsers(UUIDs){
-  console.log("displaying Users: ");
-  console.log(UUIDs);
+  $("#anchor").before(`<p class="displayed-message">${aMessage.publisher}: ${aMessage.message.text}</p>`);
+  updateScroll();
 }
 
 
 
 
-
+//MOVE TO A NEW ROOM, AND GET A NEW CHAT
 const Chatroom = function(direction) {
 
   // give this chatroom the correct id
   if (direction === "start") {
     locationIndex = "North-Woods-Entrance";
-    $(".chat-output").append(`<p class="displayed-message">In: ${locationIndex.replace(/ /g, " ")}</p>`);
-    $(".chat-output").append(`<p class="displayed-description">${locations[locationIndex].descriptions["light"]}</p>`);
+    $("#anchor").before(`<p class="displayed-message" style="color:rgb(249, 255, 199)">In: ${locationIndex.replace(/ /g, " ")}</p>`);
+    $("#anchor").before(`<p class="displayed-description">${locations[locationIndex].descriptions["light"]}</p>`);
+    updateScroll();
   } else if (!(locations[locationIndex].exits[direction] === "none")) {
     //unsubscribe from previous room
     //set locationIndex to next locations
     locationIndex = locations[locationIndex].exits[direction];
-    $(".chat-output").append(`<p class="displayed-message">${pubnub.getUUID()} moved ${shortDirections[direction]}</p>`);
-    $(".chat-output").append(`<p class="displayed-message">${locationIndex.replace(/ /g, " ")}</p>`);
-    $(".chat-output").append(`<p class="displayed-description">${locations[locationIndex].descriptions["light"]}</p>`);
-
+    $("#anchor").before(`<p class="displayed-message">${pubnub.getUUID()} moved ${shortDirections[direction]}</p>`);
+    $("#anchor").before(`<p class="displayed-message" style="color:rgb(249, 255, 199)">In: ${locationIndex.replace(/ /g, " ")}</p>`);
+    $("#anchor").before(`<p class="displayed-description">${locations[locationIndex].descriptions["light"]}</p>`);
+    updateScroll();
 
   }
 
@@ -108,16 +112,21 @@ const Chatroom = function(direction) {
   init();
 
 };
-
+//USER BUTTONS TO MOVE UNTIL COMMAND LINE FUNCTIONS
 $('.spawn-chatroom').click(function(){
   console.log(this.value);
   Chatroom(this.value);  
 });
 
+//INITIALIZE PAGE
 Chatroom("start");
 
 
-//publish message on submit
+
+
+
+
+//submit behavior
 $("#submit-button").click(function(event) {
   event.preventDefault();
 
@@ -140,3 +149,12 @@ $("#submit-button").click(function(event) {
     }
   );
 })
+
+
+
+//Srolling
+
+function updateScroll(){
+  console.log("calling scroll updater");
+  $(".message-output-box").scrollTop($(".message-output-box")[0].scrollHeight)  
+}

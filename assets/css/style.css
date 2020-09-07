@@ -11,20 +11,25 @@ body {
     max-width: 1000px;
     margin: 0 auto;
     margin-top: 120px;
-    height: 50vh;
+    height: 45vh;
     max-height: 500px;
     border: white 2px solid;
     position: relative;
+    padding-bottom: 100px;
 }
 
 .input-group {
     position: absolute;
-    bottom: -24px;
-    left: 1px;
-    width: 79%;
+    display: flex;
+    justify-content: space-between;
+    bottom: 2px;
+    left: 2px;
+    width: 98%;
     max-width: 998px;
+    background-color: black;
+    padding: 2px;
 }
 
 .chat-input {
-    width: 90%;
+width: 90%;
 }

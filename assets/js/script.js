@@ -118,7 +118,21 @@ function publishMessage(value){
 
 
 
-//submit behavior
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//INPUT SUBMIT BEHAVIOR
 $("#submit-button").click(function(event) {
   event.preventDefault();
 
@@ -129,9 +143,25 @@ $("#submit-button").click(function(event) {
 
   //accept look (look or l)
   if (value.toLowerCase().startsWith("l ") || (value.toLowerCase().startsWith("l") && value.length === 1) || value.toLowerCase().startsWith("look ") || (value.toLowerCase().startsWith("look") && value.length === 4)){
+    
+    //display room location and description
     $("#anchor").before(`<p class="displayed-message" style="color:rgb(249, 255, 199)">You look around you.</p>`);
-    $("#anchor").before(`<p class="displayed-description">${woodsWalk[locationIndex].descriptions["light"]}</p>`);
+    describeThis(woodsWalk[locationIndex].descriptions["light"])
+    
+    //add interactable items
+    if (Object.keys(woodsWalk[locationIndex].items).length > 0){
+      let objectString = "";
+      for (let item in woodsWalk[locationIndex].items){
+        if (woodsWalk[locationIndex].items[item] === "here") {
+          objectString += "a " + item + ", ";
+        }
+      }
+      objectString = objectString.slice(0,-2);
+      objectString += ".";
+      describeThis(`You also see: ${objectString}`)
+    }
     updateScroll();
+
 
     //making slicer for speaking cues
   } else if (value.startsWith("\"") || value.startsWith("\'") || value.toLowerCase().startsWith("say ")){
@@ -149,6 +179,18 @@ $("#submit-button").click(function(event) {
     }
     
     publishMessage(value);
+    //accept picking up itmes
+  } else if (doesThisStartWithThat(value, interactionWords.get)) {
+    console.log("Getting something");
+    value = takeTheseOffThat(interactionWords.get, value).trim();
+    console.log(value);
+    value = takeTheseOffThat(["a ", "the "], value).trim();
+    console.log(value);
+    
+
+
+
+    // if (Object.keys(woodsWalk[locationIndex].items).includes())
   }
 
 
@@ -161,4 +203,39 @@ $("#submit-button").click(function(event) {
 function updateScroll(){
   console.log("calling scroll updater");
   $(".message-output-box").scrollTop($(".message-output-box")[0].scrollHeight)  
+}
+
+
+
+
+
+
+//helper functions
+
+function doesThisStartWithThat(thisThing, that) {
+  for (let thing of that) {
+    if (thisThing.toLowerCase().startsWith(thing)) {
+      return true
+    }
+  }
+  return false
+}
+
+function takeTheseOffThat(these, that) {
+  for (let thing of these) {
+    if (that.toLowerCase().startsWith(thing)) {
+      return that.slice(thing.length - 1)
+    }
+  }
+
+  console.log("Sorry, couldn't do it!");
+}
+
+
+function logThis(text) {
+  $("#anchor").before(`<p class="displayed-message">${text}</p>`);
+}
+
+function describeThis(text) {
+  $("#anchor").before(`<p class="displayed-description">${text}</p>`);
 }

@@ -60,15 +60,15 @@ const Chatroom = function(direction) {
   if (direction === "start") {
     locationIndex = "North-Woods-Entrance";
     $("#anchor").before(`<p class="displayed-message" style="color:rgb(249, 255, 199)">In: ${locationIndex.replace(/ /g, " ")}</p>`);
-    $("#anchor").before(`<p class="displayed-description">${woodsWalk[locationIndex].descriptions["light"]}</p>`);
+    $("#anchor").before(`<p class="displayed-description">${woodsWalk.location[locationIndex].descriptions["light"]}</p>`);
     updateScroll();
-  } else if (!(woodsWalk[locationIndex].exits[direction] === "none")) {
+  } else if (!(woodsWalk.location[locationIndex].exits[direction] === "none")) {
     //unsubscribe from previous room
     //set locationIndex to next location
-    locationIndex = woodsWalk[locationIndex].exits[direction];
+    locationIndex = woodsWalk.location[locationIndex].exits[direction];
     $("#anchor").before(`<p class="displayed-message">${pubnub.getUUID()} moved ${shortDirections[direction]}</p>`);
     $("#anchor").before(`<p class="displayed-message" style="color:rgb(249, 255, 199)">In: ${locationIndex.replace(/ /g, " ")}</p>`);
-    $("#anchor").before(`<p class="displayed-description">${woodsWalk[locationIndex].descriptions["light"]}</p>`);
+    $("#anchor").before(`<p class="displayed-description">${woodsWalk.location[locationIndex].descriptions["light"]}</p>`);
     updateScroll();
 
   }
@@ -146,13 +146,13 @@ $("#submit-button").click(function(event) {
     
     //display room location and description
     $("#anchor").before(`<p class="displayed-message" style="color:rgb(249, 255, 199)">You look around you.</p>`);
-    describeThis(woodsWalk[locationIndex].descriptions["light"])
+    describeThis(woodsWalk.location[locationIndex].descriptions["light"])
     
     //add interactable items
-    if (Object.keys(woodsWalk[locationIndex].items).length > 0){
+    if (Object.keys(woodsWalk.location[locationIndex].items).length > 0){
       let objectString = "";
-      for (let item in woodsWalk[locationIndex].items){
-        if (woodsWalk[locationIndex].items[item] === "here") {
+      for (let item in woodsWalk.location[locationIndex].items){
+        if (woodsWalk.location[locationIndex].items[item] === "here") {
           objectString += "a " + item + ", ";
         }
       }
@@ -182,15 +182,20 @@ $("#submit-button").click(function(event) {
     //accept picking up itmes
   } else if (doesThisStartWithThat(value, interactionWords.get)) {
     console.log("Getting something");
-    value = takeTheseOffThat(interactionWords.get, value).trim();
+    value = takeTheseOffThat(interactionWords.get, value);
+    value = takeTheseOffThat(["a ", "the "], value);
     console.log(value);
-    value = takeTheseOffThat(["a ", "the "], value).trim();
-    console.log(value);
-    
-
-
-
-    // if (Object.keys(woodsWalk[locationIndex].items).includes())
+    if (Object.keys(woodsWalk.location[locationIndex].items).includes(value)){
+      console.log(value + " is in the room!");
+      logThis(`You pick up the ${value}.`)
+      woodsWalk.character.inventory.push(value);
+    } else {
+      value = takeTheseOffThat(interactionWords.get, value);
+      value = takeTheseOffThat(["a ", "the "], value);
+      logThis(`There doesn't seem to be a ${value} around here.`);
+    }
+  } else if (value.startsWith("i ") || ((value.startsWith("i")) && (value.length === 1)) || value.startsWith('inventory')) {
+    logThis(woodsWalk.character.inventory);
   }
 
 
@@ -224,11 +229,11 @@ function doesThisStartWithThat(thisThing, that) {
 function takeTheseOffThat(these, that) {
   for (let thing of these) {
     if (that.toLowerCase().startsWith(thing)) {
-      return that.slice(thing.length - 1)
+      return that.slice(thing.length - 1).trim();
     }
   }
 
-  console.log("Sorry, couldn't do it!");
+  return that;
 }
 
 

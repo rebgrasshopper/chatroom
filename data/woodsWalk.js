@@ -1,7 +1,12 @@
 
-let emptyDirections = {n:"", s:"", w:"", e:""};
+let directions = {n:"north", s:"south", w:"west", e:"east"};
 
-let interactionWords = {"get":["get ", "grab ", "pick up "],}
+let interactionWords = {"get":["get ", "grab ", "pick up "],};
+let movementWords = 
+    {
+        directions:["north", "n", "east", "e", "south", "s", "west", "w"],
+        move:["go", "climb", "walk", "run"],
+    };
 
 let woodsWalk = 
     {
@@ -43,4 +48,4 @@ let woodsWalk =
             "hp":50,
             "inventory":[],
         },
-    }
+    };

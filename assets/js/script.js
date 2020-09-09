@@ -62,15 +62,17 @@ const Chatroom = function(direction) {
     $("#anchor").before(`<p class="displayed-message" style="color:rgb(249, 255, 199)">In: ${locationIndex.replace(/ /g, " ")}</p>`);
     $("#anchor").before(`<p class="displayed-description">${woodsWalk.location[locationIndex].descriptions["light"]}</p>`);
     updateScroll();
-  } else if (!(woodsWalk.location[locationIndex].exits[direction] === "none")) {
+  } else if (!(woodsWalk.location[locationIndex].exits[direction] === "none") && !(woodsWalk.location[locationIndex].exits[direction] === undefined)) {
     //unsubscribe from previous room
     //set locationIndex to next location
     locationIndex = woodsWalk.location[locationIndex].exits[direction];
-    $("#anchor").before(`<p class="displayed-message">${pubnub.getUUID()} moved ${shortDirections[direction]}</p>`);
+    $("#anchor").before(`<p class="displayed-message">You moved ${shortDirections[direction]}</p>`);
     $("#anchor").before(`<p class="displayed-message" style="color:rgb(249, 255, 199)">In: ${locationIndex.replace(/ /g, " ")}</p>`);
     $("#anchor").before(`<p class="displayed-description">${woodsWalk.location[locationIndex].descriptions["light"]}</p>`);
     updateScroll();
 
+  } else {
+    logThis("There's no exit at " + direction);
   }
 
   // set channel off of locationIndex channel
@@ -90,31 +92,16 @@ const Chatroom = function(direction) {
   init();
 
 };
-//USER BUTTONS TO MOVE UNTIL COMMAND LINE FUNCTIONS
-$('.spawn-chatroom').click(function(){
-  console.log(this.value);
-  Chatroom(this.value);  
-});
+// //USER BUTTONS TO MOVE UNTIL COMMAND LINE FUNCTIONS
+// $('.spawn-chatroom').click(function(){
+//   console.log(this.value);
+//   Chatroom(this.value);  
+// });
 
 //INITIALIZE PAGE
 Chatroom("start");
 
 
-function publishMessage(value){
-  pubnub.publish({
-    channel: channel,
-    message: {"text":value},
-    },
-
-    function(status, response) {
-      console.log("Publishing from submit button event");
-      if (status.error) {
-        console.log(status);
-        console.log(response);
-      }
-    }
-  );
-}
 
 
 
@@ -179,7 +166,7 @@ $("#submit-button").click(function(event) {
     }
     
     publishMessage(value);
-    //accept picking up itmes
+    //accept picking up itmes and adding them to inventory
   } else if (doesThisStartWithThat(value, interactionWords.get)) {
     console.log("Getting something");
     value = takeTheseOffThat(interactionWords.get, value);
@@ -194,21 +181,25 @@ $("#submit-button").click(function(event) {
       value = takeTheseOffThat(["a ", "the "], value);
       logThis(`There doesn't seem to be a ${value} around here.`);
     }
+    //accept looking at inventory
   } else if (value.startsWith("i ") || ((value.startsWith("i")) && (value.length === 1)) || value.startsWith('inventory')) {
     logThis(woodsWalk.character.inventory);
+    //accept cardinal directions for movement
+  } else if (doesThisEqualThat(value, movementWords.directions) || doesThisStartWithThat(value, movementWords.move)) {
+    if (doesThisEqualThat(value, movementWords.directions)){
+      value = parseAlternateWords(value, directions)
+      Chatroom(value);
+    } else {
+      value = takeTheseOffThat(movementWords.move, value);
+      value = parseAlternateWords(value, directions);
+      Chatroom(value);
+    }
   }
 
 
 })
 
 
-
-//Srolling
-
-function updateScroll(){
-  console.log("calling scroll updater");
-  $(".message-output-box").scrollTop($(".message-output-box")[0].scrollHeight)  
-}
 
 
 
@@ -217,6 +208,7 @@ function updateScroll(){
 
 //helper functions
 
+//determine if a string begins with any of an array of other strings
 function doesThisStartWithThat(thisThing, that) {
   for (let thing of that) {
     if (thisThing.toLowerCase().startsWith(thing)) {
@@ -226,16 +218,37 @@ function doesThisStartWithThat(thisThing, that) {
   return false
 }
 
+//slice off any string from an array that is found at the beginning of another string
 function takeTheseOffThat(these, that) {
   for (let thing of these) {
     if (that.toLowerCase().startsWith(thing)) {
-      return that.slice(thing.length - 1).trim();
+      return that.slice(thing.length).trim();
     }
   }
 
   return that;
 }
 
+//see if a string is equal to any of the strings in an array
+function doesThisEqualThat(thisThing, that) {
+  for (let thing of that) {
+    if (thisThing.toLowerCase().trim() === thing) {
+      return true;
+    }
+  }
+  return false;
+}
+
+//return alias for words with multiple ways to type them
+function parseAlternateWords(thisThing, objecty) {
+  for (let thing in objecty) {
+    if (thisThing.toLowerCase().trim() === objecty[thing]) {
+      return thing;
+    }
+  }
+  console.log("it wasn't in there")
+  return thisThing;
+}
 
 function logThis(text) {
   $("#anchor").before(`<p class="displayed-message">${text}</p>`);
@@ -243,4 +256,32 @@ function logThis(text) {
 
 function describeThis(text) {
   $("#anchor").before(`<p class="displayed-description">${text}</p>`);
+}
+
+
+
+
+//mid-level functions
+
+//publish text to pubnub server as a message
+function publishMessage(value){
+  pubnub.publish({
+    channel: channel,
+    message: {"text":value},
+    },
+
+    function(status, response) {
+      console.log("Publishing from submit button event");
+      if (status.error) {
+        console.log(status);
+        console.log(response);
+      }
+    }
+  );
+}
+
+//Srolling
+function updateScroll(){
+  console.log("calling scroll updater");
+  $(".message-output-box").scrollTop($(".message-output-box")[0].scrollHeight)  
 }

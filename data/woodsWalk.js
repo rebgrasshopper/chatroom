@@ -1,4 +1,10 @@
 
+let commands = {
+    "look":{"input":["look", "l"], "result":"look around the room, seeing area description, exits, and interactable objects or people"},
+    "get":{"input":["get [item]", "grab [item]", "pick up [item]"], "result":"if the item is something you can pick up, you will pick it up and hold it in your hand, or add it to your inventory if your hands are full."},
+    "move":{"input":["north", "n", "east", "e", "south", "s", "west", "w", "go [direction]", "walk [direction]"], "result": "you will move through an available exit, or get a response saying that the exit specified doesn't exist"},
+    "inventory":{"input":["inventory", "i"], "result":"look at what items you are carrying"},
+}
 let directions = {n:"north", s:"south", w:"west", e:"east"};
 
 let interactionWords = {"get":["get ", "grab ", "pick up "],};

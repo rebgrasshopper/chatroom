@@ -227,7 +227,7 @@ $("#submit-button").click(function(event) {
   console.log(value);
   $(".chat-input").val("");
 
-  //accept look (look or l)
+  //ACCEPT: look (look or l)
   if (value.toLowerCase().startsWith("l ") || (value.toLowerCase().startsWith("l") && value.length === 1) || value.toLowerCase().startsWith("look ") || (value.toLowerCase().startsWith("look") && value.length === 4)){
     
     //display room location and description
@@ -250,8 +250,7 @@ $("#submit-button").click(function(event) {
     }
     updateScroll();
 
-
-    //making slicer for speaking cues
+    //ACCPET: speaking cues
   } else if (value.startsWith("\"") || value.startsWith("\'") || value.toLowerCase().startsWith("say ")){
     let startsWithQuotes = false;
     if (value.toLowerCase().startsWith("say ")) {
@@ -265,9 +264,9 @@ $("#submit-button").click(function(event) {
       value = value.slice(0,-1);
       startsWithQuotes = false;
     }
-    
     publishMessage(value);
-    //accept picking up itmes and adding them to inventory
+
+    //ACCEPT picking up itmes and adding them to inventory
   } else if (doesThisStartWithThat(value, interactionWords.get)) {
     console.log("Getting something");
     value = takeTheseOffThat(interactionWords.get, value);
@@ -282,10 +281,12 @@ $("#submit-button").click(function(event) {
       value = takeTheseOffThat(["a ", "the "], value);
       logThis(`There doesn't seem to be a ${value} around here.`);
     }
-    //accept looking at inventory
+
+    //ACCEPT: looking at inventory
   } else if (value.startsWith("i ") || ((value.startsWith("i")) && (value.length === 1)) || value.startsWith('inventory')) {
     logThis(woodsWalk.character.inventory);
-    //accept cardinal directions for movement
+
+    //ACCEPT: cardinal directions for movement
   } else if (doesThisEqualThat(value, movementWords.directions) || doesThisStartWithThat(value, movementWords.move)) {
     if (doesThisEqualThat(value, movementWords.directions)){
       value = parseAlternateWords(value, directions)
@@ -295,6 +296,24 @@ $("#submit-button").click(function(event) {
       value = parseAlternateWords(value, directions);
       Chatroom(value);
     }
+
+    //ACCEPT: help - display commands
+  } else if (value.startsWith("help ") || (value.startsWith("help") && (value.length === 4))) {
+    let commandList = "Accepted commands:<br><br>";
+    for (let command in commands) {
+      let nextline = `${command}: ${commands[command].result}<br> use: `;
+        for (let subItem of commands[command].input) {
+          nextline += subItem + ", ";
+        }
+      nextline = nextline.slice(0, -2) + "<br><br>"
+      commandList += nextline;
+    }
+    logThis(commandList);
+    updateScroll();
+  
+    //UNACCEPTED COMMANDS
+  } else {
+    logThis(value + " is not a recognized command! type 'help' for a list of accepted commands")
   }
 
 

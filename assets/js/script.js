@@ -159,7 +159,14 @@ const Chatroom = function(direction) {
     locationIndex = woodsWalk.location[locationIndex].exits[direction];
     $("#anchor").before(`<p class="displayed-message">You moved ${shortDirections[direction]}</p>`);
     $("#anchor").before(`<p class="displayed-message" style="color:rgb(249, 255, 199)">In: ${locationIndex.replace(/ /g, " ")}</p>`);
-    $("#anchor").before(`<p class="displayed-description">${woodsWalk.location[locationIndex].descriptions["light"]}</p>`);
+    describeThis(woodsWalk.location[locationIndex].descriptions["light"]);
+    let availableExits = "Exits: ";
+    for (let exitIndex in woodsWalk.location[locationIndex].exits) {
+      if (!(woodsWalk.location[locationIndex].exits[exitIndex] === "none") && !(woodsWalk.location[locationIndex].exits[exitIndex]===undefined)) {
+        availableExits += `${exitIndex}, `;
+      }
+    }
+    describeThis(availableExits);
     updateScroll();
 
   } else {

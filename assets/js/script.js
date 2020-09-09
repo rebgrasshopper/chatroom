@@ -16,12 +16,103 @@ const shortDirections = {n:"north", s:"south", e:"east", w:"west"};
 
 
 
+
+
+
+
+//HELPER FUNCTIONS
+
+//determine if a string begins with any of an array of other strings
+function doesThisStartWithThat(thisThing, that) {
+  for (let thing of that) {
+    if (thisThing.toLowerCase().startsWith(thing)) {
+      return true
+    }
+  }
+  return false
+}
+
+//slice off any string from an array that is found at the beginning of another string
+function takeTheseOffThat(these, that) {
+  for (let thing of these) {
+    if (that.toLowerCase().startsWith(thing)) {
+      return that.slice(thing.length).trim();
+    }
+  }
+
+  return that;
+}
+
+//see if a string is equal to any of the strings in an array
+function doesThisEqualThat(thisThing, that) {
+  for (let thing of that) {
+    if (thisThing.toLowerCase().trim() === thing) {
+      return true;
+    }
+  }
+  return false;
+}
+
+//return alias for words with multiple ways to type them
+function parseAlternateWords(thisThing, objecty) {
+  for (let thing in objecty) {
+    if (thisThing.toLowerCase().trim() === objecty[thing]) {
+      return thing;
+    }
+  }
+  console.log("it wasn't in there")
+  return thisThing;
+}
+
+function logThis(text) {
+  $("#anchor").before(`<p class="displayed-message">${text}</p>`);
+}
+
+function describeThis(text) {
+  $("#anchor").before(`<p class="displayed-description">${text}</p>`);
+}
+
+
+
+
+
+
+
+//MID-LEVEL FUNCTIONS
+
+//write the messages out to the chat box
 displayMessage = function(messageType, aMessage) {
   console.log(aMessage);
   $("#anchor").before(`<p class="displayed-message">${aMessage.publisher}: ${aMessage.message.text}</p>`);
   updateScroll();
 }
 
+//publish text to pubnub server as a message
+function publishMessage(value){
+  pubnub.publish({
+    channel: channel,
+    message: {"text":value},
+    },
+
+    function(status, response) {
+      console.log("Publishing from submit button event");
+      if (status.error) {
+        console.log(status);
+        console.log(response);
+      }
+    }
+  );
+}
+
+//Srolling
+function updateScroll(){
+  console.log("calling scroll updater");
+  $(".message-output-box").scrollTop($(".message-output-box")[0].scrollHeight)  
+}
+
+
+
+//add a listener to the pubnub object to receive incoming messages etc.
 pubnub.addListener({
   message: (message) => {
     displayMessage('[MESSAGE: received]', message);
@@ -92,11 +183,6 @@ const Chatroom = function(direction) {
   init();
 
 };
-// //USER BUTTONS TO MOVE UNTIL COMMAND LINE FUNCTIONS
-// $('.spawn-chatroom').click(function(){
-//   console.log(this.value);
-//   Chatroom(this.value);  
-// });
 
 //INITIALIZE PAGE
 Chatroom("start");
@@ -199,89 +285,3 @@ $("#submit-button").click(function(event) {
 
 })
 
-
-
-
-
-
-
-
-//helper functions
-
-//determine if a string begins with any of an array of other strings
-function doesThisStartWithThat(thisThing, that) {
-  for (let thing of that) {
-    if (thisThing.toLowerCase().startsWith(thing)) {
-      return true
-    }
-  }
-  return false
-}
-
-//slice off any string from an array that is found at the beginning of another string
-function takeTheseOffThat(these, that) {
-  for (let thing of these) {
-    if (that.toLowerCase().startsWith(thing)) {
-      return that.slice(thing.length).trim();
-    }
-  }
-
-  return that;
-}
-
-//see if a string is equal to any of the strings in an array
-function doesThisEqualThat(thisThing, that) {
-  for (let thing of that) {
-    if (thisThing.toLowerCase().trim() === thing) {
-      return true;
-    }
-  }
-  return false;
-}
-
-//return alias for words with multiple ways to type them
-function parseAlternateWords(thisThing, objecty) {
-  for (let thing in objecty) {
-    if (thisThing.toLowerCase().trim() === objecty[thing]) {
-      return thing;
-    }
-  }
-  console.log("it wasn't in there")
-  return thisThing;
-}
-
-function logThis(text) {
-  $("#anchor").before(`<p class="displayed-message">${text}</p>`);
-}
-
-function describeThis(text) {
-  $("#anchor").before(`<p class="displayed-description">${text}</p>`);
-}
-
-
-
-
-//mid-level functions
-
-//publish text to pubnub server as a message
-function publishMessage(value){
-  pubnub.publish({
-    channel: channel,
-    message: {"text":value},
-    },
-
-    function(status, response) {
-      console.log("Publishing from submit button event");
-      if (status.error) {
-        console.log(status);
-        console.log(response);
-      }
-    }
-  );
-}
-
-//Srolling
-function updateScroll(){
-  console.log("calling scroll updater");
-  $(".message-output-box").scrollTop($(".message-output-box")[0].scrollHeight)  
-}

@@ -72,6 +72,15 @@ function describeThis(text) {
   $("#anchor").before(`<p class="displayed-description">${text}</p>`);
 }
 
+function compileExits(locationName){
+  let exits = "Exits: ";
+  for (let exitIndex in woodsWalk.location[locationName].exits) {
+    if (!(woodsWalk.location[locationName].exits[exitIndex] === "none") && !(woodsWalk.location[locationName].exits[exitIndex]===undefined)) {
+      exits += `${exitIndex}, `;
+    }
+  }
+  return exits;
+}
 
 
 
@@ -152,6 +161,8 @@ const Chatroom = function(direction) {
     locationIndex = "North-Woods-Entrance";
     $("#anchor").before(`<p class="displayed-message" style="color:rgb(249, 255, 199)">In: ${locationIndex.replace(/ /g, " ")}</p>`);
     $("#anchor").before(`<p class="displayed-description">${woodsWalk.location[locationIndex].descriptions["light"]}</p>`);
+    let availableExits = compileExits(locationIndex);
+    describeThis(availableExits);
     updateScroll();
   } else if (!(woodsWalk.location[locationIndex].exits[direction] === "none") && !(woodsWalk.location[locationIndex].exits[direction] === undefined)) {
     //unsubscribe from previous room
@@ -160,12 +171,7 @@ const Chatroom = function(direction) {
     $("#anchor").before(`<p class="displayed-message">You moved ${shortDirections[direction]}</p>`);
     $("#anchor").before(`<p class="displayed-message" style="color:rgb(249, 255, 199)">In: ${locationIndex.replace(/ /g, " ")}</p>`);
     describeThis(woodsWalk.location[locationIndex].descriptions["light"]);
-    let availableExits = "Exits: ";
-    for (let exitIndex in woodsWalk.location[locationIndex].exits) {
-      if (!(woodsWalk.location[locationIndex].exits[exitIndex] === "none") && !(woodsWalk.location[locationIndex].exits[exitIndex]===undefined)) {
-        availableExits += `${exitIndex}, `;
-      }
-    }
+    let availableExits = compileExits(locationIndex);
     describeThis(availableExits);
     updateScroll();
 
@@ -227,6 +233,8 @@ $("#submit-button").click(function(event) {
     //display room location and description
     $("#anchor").before(`<p class="displayed-message" style="color:rgb(249, 255, 199)">You look around you.</p>`);
     describeThis(woodsWalk.location[locationIndex].descriptions["light"])
+    let availableExits = compileExits(locationIndex);
+    describeThis(availableExits);
     
     //add interactable items
     if (Object.keys(woodsWalk.location[locationIndex].items).length > 0){

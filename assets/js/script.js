@@ -23,11 +23,19 @@ const shortDirections = {n:"north", s:"south", e:"east", w:"west"};
 //HELPER FUNCTIONS
 
 //determine if a string begins with any of an array of other strings
-function doesThisStartWithThat(thisThing, that) {
-  for (let thing of that) {
+function doesThisStartWithThose(thisThing, those) {
+  for (let thing of those) {
     if (thisThing.toLowerCase().startsWith(thing)) {
       return true
     }
+  }
+  return false
+}
+
+//single value startWith() that tests for space or equal value
+function startStartWith(thing, stringy) {
+  if (stringy.toLowerCase().startsWith(`${thing} `) || ((stringy.toLowerCase().startsWith(thing)) && (stringy.length === thing.length))){
+    return true
   }
   return false
 }
@@ -228,7 +236,7 @@ $("#submit-button").click(function(event) {
   $(".chat-input").val("");
 
   //ACCEPT: look (look or l)
-  if (value.toLowerCase().startsWith("l ") || (value.toLowerCase().startsWith("l") && value.length === 1) || value.toLowerCase().startsWith("look ") || (value.toLowerCase().startsWith("look") && value.length === 4)){
+  if (startStartWith("l", value) || startStartWith("look", value)){
     
     //display room location and description
     $("#anchor").before(`<p class="displayed-message" style="color:rgb(249, 255, 199)">You look around you.</p>`);
@@ -240,7 +248,7 @@ $("#submit-button").click(function(event) {
     if (Object.keys(woodsWalk.location[locationIndex].items).length > 0){
       let objectString = "";
       for (let item in woodsWalk.location[locationIndex].items){
-        if (woodsWalk.location[locationIndex].items[item] === "here") {
+        if (woodsWalk.location[locationIndex].items[item].status === "here") {
           objectString += "a " + item + ", ";
         }
       }
@@ -267,27 +275,34 @@ $("#submit-button").click(function(event) {
     publishMessage(value);
 
     //ACCEPT picking up itmes and adding them to inventory
-  } else if (doesThisStartWithThat(value, interactionWords.get)) {
+  } else if (doesThisStartWithThose(value, interactionWords.get)) {
     console.log("Getting something");
     value = takeTheseOffThat(interactionWords.get, value);
     value = takeTheseOffThat(["a ", "the "], value);
     console.log(value);
-    if (Object.keys(woodsWalk.location[locationIndex].items).includes(value)){
+    if (Object.keys(woodsWalk.location[locationIndex].items).includes(value) && woodsWalk.location[locationIndex].items[value].status === "here"){
       console.log(value + " is in the room!");
       logThis(`You pick up the ${value}.`)
-      woodsWalk.character.inventory.push(value);
+      woodsWalk.character.inventory.push(woodsWalk.location[locationIndex].items[value]);
+      woodsWalk.location[locationIndex].items.branch.status = "gone";
     } else {
       value = takeTheseOffThat(interactionWords.get, value);
       value = takeTheseOffThat(["a ", "the "], value);
       logThis(`There doesn't seem to be a ${value} around here.`);
     }
+    updateScroll();
 
     //ACCEPT: looking at inventory
-  } else if (value.startsWith("i ") || ((value.startsWith("i")) && (value.length === 1)) || value.startsWith('inventory')) {
-    logThis(woodsWalk.character.inventory);
+  } else if (startStartWith("i", value) || startStartWith("inventory", value)) {
+    if (woodsWalk.character.inventory.length > 0) {
+      logThis(`Your inventory: ${woodsWalk.character.inventory.join(", ")}`);
+    } else {
+      logThis("You have nothing in your inventory.")
+    }
+    updateScroll();
 
     //ACCEPT: cardinal directions for movement
-  } else if (doesThisEqualThat(value, movementWords.directions) || doesThisStartWithThat(value, movementWords.move)) {
+  } else if (doesThisEqualThat(value, movementWords.directions) || doesThisStartWithThose(value, movementWords.move)) {
     if (doesThisEqualThat(value, movementWords.directions)){
       value = parseAlternateWords(value, directions)
       Chatroom(value);
@@ -296,9 +311,10 @@ $("#submit-button").click(function(event) {
       value = parseAlternateWords(value, directions);
       Chatroom(value);
     }
+    updateScroll();
 
     //ACCEPT: help - display commands
-  } else if (value.startsWith("help ") || (value.startsWith("help") && (value.length === 4))) {
+  } else if (startStartWith("help", value)) {
     let commandList = "Accepted commands:<br><br>";
     for (let command in commands) {
       let nextline = `${command}: ${commands[command].result}<br> use: `;
@@ -311,9 +327,20 @@ $("#submit-button").click(function(event) {
     logThis(commandList);
     updateScroll();
   
+    //ACCEPT: /me to describe actions
+  } else if (value.toLowerCase().startsWith("/me")) {
+    value = takeTheseOffThat(["/me"], value);
+    if (value.length > 0) {
+      logThis(`${pubnub.getUUID()} ${value}`);
+    } else {
+      logThis("You need to type something to do if you want to use /me!")
+    }
+    updateScroll();
+  
     //UNACCEPTED COMMANDS
   } else {
-    logThis(value + " is not a recognized command! type 'help' for a list of accepted commands")
+    logThis(value + " is not a recognized command! type 'help' for a list of accepted commands");
+    updateScroll();
   }
 
 

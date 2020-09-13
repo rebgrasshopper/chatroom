@@ -1,4 +1,4 @@
 # chatroom
 playing around with creating a chatroom, textbased morpg goal in mind
 
-rebgrasshopper.github.io/chatroom
+[link to live site](rebgrasshopper.github.io/chatroom)

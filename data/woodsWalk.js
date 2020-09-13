@@ -2,18 +2,23 @@
 let commands = {
     "look":{"input":["look", "l"], "result":"look around the room, seeing area description, exits, and interactable objects or people"},
     "get":{"input":["get [item]", "grab [item]", "pick up [item]"], "result":"if the item is something you can pick up, you will pick it up and hold it in your hand, or add it to your inventory if your hands are full."},
+    "drop":{"input":["drop", "let go of", "discard", "get rid of"], "result":"drop an item from your inventory, leaving it on the ground in the room."},
     "move":{"input":["north", "n", "east", "e", "south", "s", "west", "w", "go [direction]", "walk [direction]"], "result": "you will move through an available exit, or get a response saying that the exit specified doesn't exist"},
     "inventory":{"input":["inventory", "i"], "result":"look at what items you are carrying"},
     "act":{"input":["/me"], "result": "use /me followed by a description of an action as it would look to those around you. /me will be replaced with your character's name."},
-    "examine":{"input":["examine", "e"], "result":"look closely at an item or person."},
+    // "examine":{"input":["examine", "e"], "result":"look closely at an item or person."},
+
 }
 let directions = {n:"north", s:"south", w:"west", e:"east"};
 
-let interactionWords = {"get":["get ", "grab ", "pick up "],};
+let interactionWords = {
+    "get":["get ", "grab ", "pick up "],
+    "drop":["drop ", "let go of ", "discard ", "get rid of "],
+    };
 let movementWords = 
     {
         directions:["north", "n", "east", "e", "south", "s", "west", "w"],
-        move:["go", "climb", "walk", "run"],
+        move:["move", "go", "climb", "walk", "run"],
     };
 
 let woodsWalk = 
@@ -23,16 +28,16 @@ let woodsWalk =
             {"exits":
             {"n":"North-Woods-Path-A", "s":"Plains-X", "w":"none", "e":"none"},
             "descriptions":
-            {"light":"The path into the woods is well lit by sun from the plains to the south. Large redwoods and a variety of other trees competing for the leftover scraps of sunlight seem to stretch infinitely to either side, but the path to the north is clear. It's almost as if a diving line exists that keeps the plains on one side and the forest on the other.", "dark":"You can just make out the way forward between the dense growth of trees with the faint glow of moonlight filtering dimly into the forest entrance."},
+            {"light":"The path into the woods is well lit by sun from the plains to the south. Large redwoods and a variety of other trees competing for the leftover scraps of sunlight seem to stretch infinitely to either side, but the path to the north is clear. It's almost as if a dividing line exists that keeps the plains on one side and the forest on the other.", "dark":"You can just make out the way forward between the dense growth of trees with the faint glow of moonlight filtering dimly into the forest entrance."},
             "items":
-            {"flower":{"status":"here", "description":"The flower before you has soft yellow petals radially aligned around a dark brown center. It stretches up delicately from a leafy green base."}, "branch":{"status":"here", "description":"The branch in front of you is medium brown and squiggly in shape. It has a couple pokey outey jagged bits, and a couple smooth bits."}}
+            [{"name":"flower", "status":"here", "description":"The flower before you has soft yellow petals radially aligned around a dark brown center. It stretches up delicately from a leafy green base."}, {"name":"branch", "status":"here", "description":"The branch in front of you is medium brown and squiggly in shape. It has a couple pokey outey jagged bits, and a couple smooth bits."}]
             },
             "North-Woods-Path-A":{"exits":
             {"n":"North-Woods-Path-B", "s":"North-Woods-Entrance", "w":"none", "e":"none"},
             "descriptions":
             {"light":"The interior of the forest is shady, but well lit with dappled sunshine falling through the canopy. Birds call out to each other, unseen in the high tree-tops. You see the path stretching north before you.", "dark":"It's almost pitch-black inside the wood, but you can just make out the path in front of you. The forest rustles around you in the night breeze, and the soft call of an owl floats in from far away."},
             "items":
-            {"branch":{"status":"here", "description":"The branch in front of you is dark brown, with the bark flaking off. it has a Y shape at the end."}, "mushroom":{"status":"here", "description":"This mushroom is round and plump, with a tannish-brown cap."}}
+            [{"name":"branch", "status":"here", "description":"The branch in front of you is dark brown, with the bark flaking off. it has a Y shape at the end."}, {"name":"mushroom", "status":"here", "description":"This mushroom is round and plump, with a tannish-brown cap."}]
             },
             "North-Woods-Path-B":{"exits":
             {"n":"Empty-Grotto", "s":"North-Woods-Path-A", "w":"none", "e":"none"},
